@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "StyleSync Theme State",
+  "type": "object",
+  "required": [
+    "site_id",
+    "url",
+    "version",
+    "updated_at",
+    "locked_tokens",
+    "overrides",
+    "history"
+  ],
+  "properties": {
+    "site_id": {
+      "type": "string",
+      "description": "Normalized site identifier (host-based key)."
+    },
+    "url": {
+      "type": "string",
+      "description": "Original scanned URL."
+    },
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "locked_tokens": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "overrides": {
+      "type": "object",
+      "properties": {
+        "colors": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "typography": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "spacing": {
+          "type": "object",
+          "additionalProperties": {
+            "type": ["number", "integer"]
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["version", "updated_at", "locked_tokens", "overrides"],
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "locked_tokens": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "overrides": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

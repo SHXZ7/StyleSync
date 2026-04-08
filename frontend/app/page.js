@@ -641,6 +641,53 @@ export default function Home() {
 
   const tokenSource = (token) => (token && typeof token === "object" && token.source ? token.source : "computed");
 
+  const hexToRgb = (hex) => {
+    const raw = String(hex || "").trim().replace("#", "");
+    if (!/^[0-9a-fA-F]{6}$/.test(raw)) {
+      return null;
+    }
+    return {
+      r: parseInt(raw.slice(0, 2), 16),
+      g: parseInt(raw.slice(2, 4), 16),
+      b: parseInt(raw.slice(4, 6), 16),
+    };
+  };
+
+  const luminance = (hex) => {
+    const rgb = hexToRgb(hex);
+    if (!rgb) {
+      return null;
+    }
+    const convert = (v) => {
+      const c = v / 255;
+      return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * convert(rgb.r) + 0.7152 * convert(rgb.g) + 0.0722 * convert(rgb.b);
+  };
+
+  const contrastRatio = (a, b) => {
+    const la = luminance(a);
+    const lb = luminance(b);
+    if (la === null || lb === null) {
+      return 1;
+    }
+    const lighter = Math.max(la, lb);
+    const darker = Math.min(la, lb);
+    return (lighter + 0.05) / (darker + 0.05);
+  };
+
+  const pickReadableText = (bg, preferred) => {
+    if (contrastRatio(bg, preferred) >= 3.2) {
+      return preferred;
+    }
+    return contrastRatio(bg, "#111111") >= contrastRatio(bg, "#ffffff") ? "#111111" : "#ffffff";
+  };
+
+  const liveCardBg = getLiveColor("surface_alt", colors?.surface_alt);
+  const liveCardText = pickReadableText(liveCardBg, getLiveColor("text_primary", colors?.text_primary));
+  const liveCardSubtle = pickReadableText(liveCardBg, getLiveColor("text_secondary", colors?.text_secondary));
+  const liveCardBorder = getLiveColor("text_secondary", colors?.text_secondary);
+
   const isBoldMood = meta?.style && String(meta.style).toLowerCase().includes("modern") && Boolean(colors?.brand);
 
   return (
@@ -1158,13 +1205,20 @@ export default function Home() {
                 <div
                   className={`${previewTab === "card" ? "block" : "hidden"} border border-[#050505] p-4 md:block`}
                   style={{
-                    backgroundColor: "var(--color-surface-alt)",
-                    color: "var(--color-text-primary)",
+                    backgroundColor: liveCardBg,
+                    color: liveCardText,
+                    borderColor: liveCardBorder,
+                    minHeight: "128px",
                     fontFamily: "var(--font-family-base)",
                   }}
                 >
                   <p className="text-xs font-bold uppercase opacity-70">Card</p>
-                  <p className="mt-2 text-sm">Live card preview updates instantly as tokens change.</p>
+                  <div className="mt-2 border px-3 py-2" style={{ borderColor: liveCardSubtle }}>
+                    <p className="text-sm font-semibold">Live card preview updates instantly as tokens change.</p>
+                    <p className="mt-1 text-xs" style={{ color: liveCardSubtle }}>
+                      Surface and text auto-adjust for readability.
+                    </p>
+                  </div>
                 </div>
 
                 <div className={`${previewTab === "input" ? "block" : "hidden"} border border-[#050505] p-4 md:block`} style={{ backgroundColor: "var(--color-surface)", fontFamily: "var(--font-family-base)" }}>
@@ -1473,11 +1527,12 @@ export default function Home() {
               <div
                 className="border border-[#050505]"
                 style={{
-                  backgroundColor: "var(--color-surface-alt)",
-                  color: "var(--color-text-primary)",
-                  borderColor: "var(--color-surface-alt)",
+                  backgroundColor: liveCardBg,
+                  color: liveCardText,
+                  borderColor: liveCardBorder,
                   borderRadius: components.card.radius || "12px",
                   padding: components.card.padding || "24px",
+                  minHeight: "96px",
                   fontFamily: "var(--font-family-base)",
                 }}
               >
