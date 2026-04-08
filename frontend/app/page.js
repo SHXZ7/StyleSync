@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function Home() {
   const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
@@ -27,6 +27,221 @@ export default function Home() {
   const [previewTab, setPreviewTab] = useState("button");
   const [lockedTokens, setLockedTokens] = useState({});
   const [isSavingState, setIsSavingState] = useState(false);
+  const [scanStageIndex, setScanStageIndex] = useState(0);
+  const [historyState, setHistoryState] = useState({ stack: [], index: -1 });
+  const [baselineTheme, setBaselineTheme] = useState(null);
+  const [compareSplit, setCompareSplit] = useState(50);
+  const [componentState, setComponentState] = useState("default");
+  const [revealedCount, setRevealedCount] = useState(0);
+  const [selectedToken, setSelectedToken] = useState(null);
+  const [pendingSharedSession, setPendingSharedSession] = useState(null);
+
+  const urlInputRef = useRef(null);
+
+  const scanStages = ["Queue", "DOM", "Images", "Tokens", "Components", "Complete"];
+
+  const clone = (value) => JSON.parse(JSON.stringify(value));
+
+  const pushHistorySnapshot = (nextColors, nextTypography, nextSpacing, label = "edit") => {
+    const snapshot = {
+      colors: clone(nextColors),
+      typography: clone(nextTypography),
+      spacing: clone(nextSpacing),
+      label,
+      at: Date.now(),
+    };
+
+    setHistoryState((prev) => {
+      const base = prev.stack.slice(0, prev.index + 1);
+      const last = base[base.length - 1];
+      const isDuplicate =
+        last &&
+        JSON.stringify(last.colors) === JSON.stringify(snapshot.colors) &&
+        JSON.stringify(last.typography) === JSON.stringify(snapshot.typography) &&
+        JSON.stringify(last.spacing) === JSON.stringify(snapshot.spacing);
+
+      if (isDuplicate) {
+        return prev;
+      }
+
+      let nextStack = [...base, snapshot];
+      if (nextStack.length > 80) {
+        nextStack = nextStack.slice(nextStack.length - 80);
+      }
+
+      return {
+        stack: nextStack,
+        index: nextStack.length - 1,
+      };
+    });
+  };
+
+  const applySnapshot = (snapshot) => {
+    if (!snapshot) {
+      return;
+    }
+
+    setEditableColors(snapshot.colors || {});
+    setEditableTypography(snapshot.typography || editableTypography);
+    setEditableSpacing(snapshot.spacing || editableSpacing);
+    persistThemeState(lockedTokens, snapshot.colors || {}, snapshot.typography || editableTypography, snapshot.spacing || editableSpacing);
+  };
+
+  const encodeSessionState = (payload) => {
+    try {
+      return btoa(encodeURIComponent(JSON.stringify(payload)));
+    } catch {
+      return "";
+    }
+  };
+
+  const decodeSessionState = (encoded) => {
+    try {
+      return JSON.parse(decodeURIComponent(atob(encoded)));
+    } catch {
+      return null;
+    }
+  };
+
+  const sectionClass = (index) =>
+    `transition-all duration-500 ${revealedCount >= index ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`;
+
+  const createSharePayload = () => ({
+    sourceUrl: safeUrl(url.trim()),
+    colors: editableColors,
+    typography: editableTypography,
+    spacing: editableSpacing,
+    lockedTokens,
+    version: meta?.version || 0,
+  });
+
+  const copyShareLink = async () => {
+    const payload = createSharePayload();
+    const encoded = encodeSessionState(payload);
+    if (!encoded) {
+      return;
+    }
+
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set("ss", encoded);
+
+    try {
+      await navigator.clipboard.writeText(currentUrl.toString());
+    } catch {
+      // Clipboard can fail on restricted contexts; keep URL in address bar anyway.
+    }
+
+    window.history.replaceState({}, "", currentUrl.toString());
+  };
+
+  const openTokenDrilldown = (token) => {
+    setSelectedToken(token);
+  };
+
+  const undoHistory = () => {
+    let targetSnapshot = null;
+
+    setHistoryState((prev) => {
+      if (prev.index <= 0) {
+        return prev;
+      }
+      targetSnapshot = prev.stack[prev.index - 1];
+      return {
+        ...prev,
+        index: prev.index - 1,
+      };
+    });
+
+    if (targetSnapshot) {
+      applySnapshot(targetSnapshot);
+    }
+  };
+
+  const redoHistory = () => {
+    let targetSnapshot = null;
+
+    setHistoryState((prev) => {
+      if (prev.index >= prev.stack.length - 1) {
+        return prev;
+      }
+      targetSnapshot = prev.stack[prev.index + 1];
+      return {
+        ...prev,
+        index: prev.index + 1,
+      };
+    });
+
+    if (targetSnapshot) {
+      applySnapshot(targetSnapshot);
+    }
+  };
+
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      const tag = String(event.target?.tagName || "").toLowerCase();
+      const isTyping = tag === "input" || tag === "textarea" || event.target?.isContentEditable;
+
+      if (!isTyping && event.key === "/") {
+        event.preventDefault();
+        urlInputRef.current?.focus();
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        if (event.shiftKey) {
+          redoHistory();
+        } else {
+          undoHistory();
+        }
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "y") {
+        event.preventDefault();
+        redoHistory();
+      }
+
+      if (event.key.toLowerCase() === "l" && selectedToken?.lockKey) {
+        event.preventDefault();
+        toggleLock(selectedToken.lockKey);
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "e") {
+        event.preventDefault();
+        copyShareLink();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shared = params.get("ss");
+    if (!shared) {
+      return;
+    }
+    const decoded = decodeSessionState(shared);
+    if (decoded) {
+      setPendingSharedSession(decoded);
+      if (decoded.sourceUrl) {
+        setUrl(decoded.sourceUrl);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!result) {
+      return;
+    }
+
+    setRevealedCount(0);
+    const timer = window.setInterval(() => {
+      setRevealedCount((prev) => Math.min(prev + 1, 14));
+    }, 85);
+
+    return () => window.clearInterval(timer);
+  }, [result]);
 
   const tokenValue = (token) => (token && typeof token === "object" && "value" in token ? token.value : token);
 
@@ -200,7 +415,12 @@ export default function Home() {
     }
 
     setIsLoading(true);
+    setScanStageIndex(0);
     setError("");
+
+    const stageTimer = window.setInterval(() => {
+      setScanStageIndex((prev) => Math.min(prev + 1, scanStages.length - 2));
+    }, 550);
 
     try {
       const res = await fetch(apiUrl("/scrape?url=") + encodeURIComponent(validUrl), {
@@ -228,6 +448,55 @@ export default function Home() {
         ...((data?.state?.overrides || {}).spacing || {}),
       });
       setLockedTokens(toLockedMap(data?.state?.locked_tokens));
+
+      const extractedBaseline = {
+        colors: bootstrapEditableColors(data?.system?.colors),
+        typography: bootstrapEditableTypography(data?.system?.typography),
+        spacing: bootstrapEditableSpacing(data?.system?.spacing),
+      };
+      setBaselineTheme(extractedBaseline);
+
+      const initialSnapshot = {
+        colors: {
+          ...bootstrapEditableColors(data?.system?.colors),
+          ...((data?.state?.overrides || {}).colors || {}),
+        },
+        typography: {
+          ...bootstrapEditableTypography(data?.system?.typography),
+          ...((data?.state?.overrides || {}).typography || {}),
+        },
+        spacing: {
+          ...bootstrapEditableSpacing(data?.system?.spacing),
+          ...((data?.state?.overrides || {}).spacing || {}),
+        },
+        label: "scan",
+        at: Date.now(),
+      };
+
+      if (pendingSharedSession) {
+        const sharedColors = pendingSharedSession.colors || {};
+        const sharedTypography = pendingSharedSession.typography || {};
+        const sharedSpacing = pendingSharedSession.spacing || {};
+        const sharedLocks = pendingSharedSession.lockedTokens || {};
+
+        const mergedColors = { ...initialSnapshot.colors, ...sharedColors };
+        const mergedTypography = { ...initialSnapshot.typography, ...sharedTypography };
+        const mergedSpacing = { ...initialSnapshot.spacing, ...sharedSpacing };
+
+        setEditableColors(mergedColors);
+        setEditableTypography(mergedTypography);
+        setEditableSpacing(mergedSpacing);
+        setLockedTokens(sharedLocks);
+        persistThemeState(sharedLocks, mergedColors, mergedTypography, mergedSpacing);
+
+        initialSnapshot.colors = mergedColors;
+        initialSnapshot.typography = mergedTypography;
+        initialSnapshot.spacing = mergedSpacing;
+        setPendingSharedSession(null);
+      }
+
+      setHistoryState({ stack: [initialSnapshot], index: 0 });
+      setScanStageIndex(scanStages.length - 1);
     } catch (err) {
       const message = String(err?.message || "Unknown error");
       if (message.toLowerCase().includes("cors") || message.toLowerCase().includes("failed to fetch")) {
@@ -237,6 +506,7 @@ export default function Home() {
       }
       setResult(null);
     } finally {
+      window.clearInterval(stageTimer);
       setIsLoading(false);
     }
   };
@@ -265,6 +535,47 @@ export default function Home() {
 
   const getLiveColor = (name, fallback) => editableColors[name] || tokenValue(fallback) || "#000000";
 
+  const updateTypography = (key, value) => {
+    const next = { ...editableTypography, [key]: value };
+    setEditableTypography(next);
+    persistThemeState(lockedTokens, editableColors, next, editableSpacing);
+    pushHistorySnapshot(editableColors, next, editableSpacing, `type:${key}`);
+  };
+
+  const updateSpacing = (key, value) => {
+    const next = { ...editableSpacing, [key]: value };
+    setEditableSpacing(next);
+    persistThemeState(lockedTokens, editableColors, editableTypography, next);
+    pushHistorySnapshot(editableColors, editableTypography, next, `space:${key}`);
+  };
+
+  const buildThemeVarsForSnapshot = (snapshot) => {
+    const snapshotColors = snapshot?.colors || {};
+    const snapshotTypography = snapshot?.typography || editableTypography;
+    const snapshotSpacing = snapshot?.spacing || editableSpacing;
+    const snapshotColor = (name, fallback) => snapshotColors[name] || tokenValue(fallback) || "#000000";
+
+    return {
+      "--color-primary": snapshotColor("primary", colors?.primary),
+      "--color-primary-foreground": snapshotColor("primary_foreground", colors?.primary_foreground),
+      "--color-surface": snapshotColor("surface", colors?.surface),
+      "--color-surface-alt": snapshotColor("surface_alt", colors?.surface_alt),
+      "--color-text-primary": snapshotColor("text_primary", colors?.text_primary),
+      "--color-text-secondary": snapshotColor("text_secondary", colors?.text_secondary),
+      "--color-brand": snapshotColor("brand", colors?.brand),
+      "--color-danger": snapshotColor("danger", colors?.danger),
+      "--font-family-base": snapshotTypography.fontFamily || editableTypography.fontFamily,
+      "--font-size-body": `${snapshotTypography.bodySize || editableTypography.bodySize}px`,
+      "--font-size-h1": `${snapshotTypography.h1Size || editableTypography.h1Size}px`,
+      "--font-weight-body": String(snapshotTypography.bodyWeight || editableTypography.bodyWeight),
+      "--line-height-body": String(snapshotTypography.bodyLineHeight || editableTypography.bodyLineHeight),
+      "--spacing-xs": `${snapshotSpacing.xs ?? editableSpacing.xs}px`,
+      "--spacing-sm": `${snapshotSpacing.sm ?? editableSpacing.sm}px`,
+      "--spacing-md": `${snapshotSpacing.md ?? editableSpacing.md}px`,
+      "--spacing-lg": `${snapshotSpacing.lg ?? editableSpacing.lg}px`,
+    };
+  };
+
   const toggleLock = (tokenName) => {
     setLockedTokens((prev) => {
       const next = {
@@ -290,6 +601,7 @@ export default function Home() {
       [colorName]: value,
     };
     persistThemeState(lockedTokens, nextColors, editableTypography, editableSpacing);
+    pushHistorySnapshot(nextColors, editableTypography, editableSpacing, `color:${colorName}`);
   };
 
   const infoCards = [
@@ -327,6 +639,8 @@ export default function Home() {
       .replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase());
 
+  const tokenSource = (token) => (token && typeof token === "object" && token.source ? token.source : "computed");
+
   const isBoldMood = meta?.style && String(meta.style).toLowerCase().includes("modern") && Boolean(colors?.brand);
 
   return (
@@ -345,6 +659,7 @@ export default function Home() {
           <div className="sticky top-0 z-20 -mx-3 bg-background/95 px-3 py-2 backdrop-blur-sm sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0">
             <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-3">
             <input
+              ref={urlInputRef}
               type="text"
               placeholder="https://www.upwork.com/"
               value={url}
@@ -375,6 +690,25 @@ export default function Home() {
       {isLoading && (
         <section className="neo-frame p-4">
           <p className="mb-3 text-sm font-black uppercase tracking-[0.16em] text-[#050505]">Parsing DOM Tree</p>
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:grid-cols-6">
+            {scanStages.map((stage, idx) => {
+              const state = idx < scanStageIndex ? "done" : idx === scanStageIndex ? "active" : "idle";
+              return (
+                <div
+                  key={stage}
+                  className={`border px-2 py-1 text-[10px] font-black uppercase tracking-[0.08em] ${
+                    state === "done"
+                      ? "border-[#050505] bg-[#d9f99d]"
+                      : state === "active"
+                        ? "border-[#050505] bg-[#ffedd5]"
+                        : "border-[#71717a] bg-[#f5f5f5]"
+                  }`}
+                >
+                  {stage}
+                </div>
+              );
+            })}
+          </div>
           <div className="space-y-2">
             <div className="h-3 w-1/2 animate-pulse bg-[#d4d4d8]" />
             <div className="ml-4 h-3 w-2/3 animate-pulse bg-[#e4e4e7]" />
@@ -404,7 +738,7 @@ export default function Home() {
 
       {result && (
         <section className="mt-3 flex flex-col gap-3">
-          <div className="neo-frame p-3">
+          <div className={`neo-frame p-3 ${sectionClass(1)}`}>
             <p className="mb-2 text-sm font-black uppercase tracking-[0.2em] text-[#050505]">Scan Summary</p>
             <div className="grid grid-cols-1 gap-2 text-sm font-semibold text-[#27272a] sm:grid-cols-3">
               {metricItems.map(([label, value]) => (
@@ -417,7 +751,35 @@ export default function Home() {
             <div className="mt-2 text-xs font-semibold uppercase tracking-[0.08em] text-[#52525b]">
               Version {meta?.version || 0} {isSavingState ? "• Saving" : "• Saved"}
             </div>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={undoHistory}
+                disabled={historyState.index <= 0}
+                className="border border-[#050505] bg-[#ebebeb] px-2 py-1 text-xs font-bold disabled:opacity-40"
+              >
+                Undo
+              </button>
+              <button
+                type="button"
+                onClick={redoHistory}
+                disabled={historyState.index >= historyState.stack.length - 1}
+                className="border border-[#050505] bg-[#ebebeb] px-2 py-1 text-xs font-bold disabled:opacity-40"
+              >
+                Redo
+              </button>
+              <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#52525b]">
+                Step {Math.max(historyState.index + 1, 0)} / {historyState.stack.length}
+              </p>
+            </div>
             <div className="mt-2 flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={copyShareLink}
+                className="border border-[#050505] bg-[#ebebeb] px-2 py-1 text-xs font-bold"
+              >
+                Copy Share Link
+              </button>
               <button
                 type="button"
                 onClick={() => {
@@ -462,12 +824,38 @@ export default function Home() {
                 Export Tailwind
               </button>
             </div>
+            <p className="mt-2 text-[11px] font-bold uppercase tracking-[0.08em] text-[#71717a]">
+              Shortcuts: / focus URL • Ctrl/Cmd+Z undo • Ctrl/Cmd+E copy session link • L lock selected token
+            </p>
           </div>
+
+          {selectedToken && (
+            <div className={`neo-frame border-[#2563eb] bg-[#eff6ff] p-3 ${sectionClass(2)}`}>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-black uppercase tracking-[0.12em] text-[#1e3a8a]">Token Drilldown</p>
+                <button
+                  type="button"
+                  onClick={() => setSelectedToken(null)}
+                  className="border border-[#1e3a8a] bg-[#dbeafe] px-2 py-1 text-[11px] font-black uppercase"
+                >
+                  Close
+                </button>
+              </div>
+              <div className="mt-2 grid grid-cols-1 gap-2 text-xs font-semibold text-[#1e3a8a] sm:grid-cols-2">
+                <p><span className="font-black uppercase">Token:</span> {selectedToken.name}</p>
+                <p><span className="font-black uppercase">Category:</span> {selectedToken.category}</p>
+                <p><span className="font-black uppercase">Source:</span> {selectedToken.source}</p>
+                <p><span className="font-black uppercase">Value:</span> {selectedToken.value}</p>
+                <p><span className="font-black uppercase">Locked:</span> {selectedToken.locked ? "Yes" : "No"}</p>
+                <p><span className="font-black uppercase">Confidence:</span> {selectedToken.confidence}</p>
+              </div>
+            </div>
+          )}
 
           <div className="pr-1">
 
           {colors && (
-            <div className={`neo-frame p-4 ${isBoldMood ? "ring-2 ring-[#ff3b30]/40" : ""}`}>
+            <div className={`neo-frame p-4 ${isBoldMood ? "ring-2 ring-[#ff3b30]/40" : ""} ${sectionClass(3)}`}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Token Editor</p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {Object.entries(colors)
@@ -486,8 +874,25 @@ export default function Home() {
                           <p className="text-sm font-bold">{prettyLabel(name)}</p>
                           <div className="ml-auto flex items-center gap-2">
                             <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#52525b]">
-                              {isLocked ? "locked" : tokenValue(value?.source || value?.source) || "live"}
+                              {isLocked ? "locked" : tokenSource(value)}
                             </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openTokenDrilldown({
+                                  name: prettyLabel(name),
+                                  category: "color",
+                                  source: tokenSource(value),
+                                  value: liveColor,
+                                  locked: isLocked,
+                                  lockKey: tokenName,
+                                  confidence: tokenSource(value) === "extracted" ? "high" : "derived",
+                                })
+                              }
+                              className="min-h-11 border border-[#050505] bg-[#ebebeb] px-2 py-1 text-xs font-black"
+                            >
+                              i
+                            </button>
                             <button
                               type="button"
                               onClick={() => toggleLock(tokenName)}
@@ -523,7 +928,7 @@ export default function Home() {
           )}
 
           {typography && (
-            <div className="neo-frame p-4">
+            <div className={`neo-frame p-4 ${sectionClass(4)}`}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Typography Inspector</p>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="border border-[#050505] bg-[#f5f5f5] p-3">
@@ -531,11 +936,7 @@ export default function Home() {
                   <input
                     type="text"
                     value={editableTypography.fontFamily}
-                    onChange={(e) => {
-                      const next = { ...editableTypography, fontFamily: e.target.value };
-                      setEditableTypography(next);
-                      persistThemeState(lockedTokens, editableColors, next, editableSpacing);
-                    }}
+                    onChange={(e) => updateTypography("fontFamily", e.target.value)}
                     className="mt-1 h-9 w-full border border-[#050505] bg-white px-2 text-xs"
                   />
 
@@ -544,11 +945,7 @@ export default function Home() {
                     <input
                       type="number"
                       value={editableTypography.bodySize}
-                      onChange={(e) => {
-                        const next = { ...editableTypography, bodySize: Number(e.target.value || 14) };
-                        setEditableTypography(next);
-                        persistThemeState(lockedTokens, editableColors, next, editableSpacing);
-                      }}
+                      onChange={(e) => updateTypography("bodySize", Number(e.target.value || 14))}
                       className="h-8 border border-[#050505] bg-white px-2"
                     />
                     <label className="font-bold uppercase">Body Weight</label>
@@ -558,11 +955,7 @@ export default function Home() {
                       max="900"
                       step="100"
                       value={editableTypography.bodyWeight}
-                      onChange={(e) => {
-                        const next = { ...editableTypography, bodyWeight: Number(e.target.value || 400) };
-                        setEditableTypography(next);
-                        persistThemeState(lockedTokens, editableColors, next, editableSpacing);
-                      }}
+                      onChange={(e) => updateTypography("bodyWeight", Number(e.target.value || 400))}
                       className="h-8 border border-[#050505] bg-white px-2"
                     />
                     <label className="font-bold uppercase">Line Height</label>
@@ -572,11 +965,7 @@ export default function Home() {
                       max="2"
                       step="0.05"
                       value={editableTypography.bodyLineHeight}
-                      onChange={(e) => {
-                        const next = { ...editableTypography, bodyLineHeight: Number(e.target.value || 1.5) };
-                        setEditableTypography(next);
-                        persistThemeState(lockedTokens, editableColors, next, editableSpacing);
-                      }}
+                      onChange={(e) => updateTypography("bodyLineHeight", Number(e.target.value || 1.5))}
                       className="h-8 border border-[#050505] bg-white px-2"
                     />
                     <label className="font-bold uppercase">H1 Size</label>
@@ -585,11 +974,7 @@ export default function Home() {
                       min="20"
                       max="120"
                       value={editableTypography.h1Size}
-                      onChange={(e) => {
-                        const next = { ...editableTypography, h1Size: Number(e.target.value || 40) };
-                        setEditableTypography(next);
-                        persistThemeState(lockedTokens, editableColors, next, editableSpacing);
-                      }}
+                      onChange={(e) => updateTypography("h1Size", Number(e.target.value || 40))}
                       className="h-8 border border-[#050505] bg-white px-2"
                     />
                   </div>
@@ -626,7 +1011,7 @@ export default function Home() {
           )}
 
           {spacing && (
-            <div className="neo-frame p-4">
+            <div className={`neo-frame p-4 ${sectionClass(5)}`}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Spacing Visualizer</p>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="space-y-2 border border-[#050505] bg-[#f5f5f5] p-3">
@@ -642,11 +1027,7 @@ export default function Home() {
                         max="64"
                         step="4"
                         value={value}
-                        onChange={(e) => {
-                          const next = { ...editableSpacing, [key]: Number(e.target.value) };
-                          setEditableSpacing(next);
-                          persistThemeState(lockedTokens, editableColors, editableTypography, next);
-                        }}
+                        onChange={(e) => updateSpacing(key, Number(e.target.value))}
                         className="w-full"
                       />
                     </div>
@@ -666,8 +1047,71 @@ export default function Home() {
           )}
 
           {colors && (
-            <div className="neo-frame p-4" style={buildThemeVars()}>
+            <div className={`neo-frame p-4 ${sectionClass(6)}`}>
+              <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Before/After Compare</p>
+              <div className="mb-3 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.08em] text-[#3f3f46]">
+                <span>Before</span>
+                <input
+                  type="range"
+                  min="20"
+                  max="80"
+                  step="5"
+                  value={compareSplit}
+                  onChange={(e) => setCompareSplit(Number(e.target.value))}
+                  className="w-full"
+                />
+                <span>After</span>
+              </div>
+              <div className="grid gap-2" style={{ gridTemplateColumns: `${100 - compareSplit}% ${compareSplit}%` }}>
+                <div className="border border-[#050505] bg-[#f5f5f5] p-3" style={buildThemeVarsForSnapshot(baselineTheme)}>
+                  <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#52525b]">Extracted</p>
+                  <button
+                    type="button"
+                    className="mt-2 border px-3 py-2 text-sm font-bold"
+                    style={{
+                      backgroundColor: "var(--color-primary)",
+                      color: "var(--color-primary-foreground)",
+                      borderColor: "var(--color-primary)",
+                      fontFamily: "var(--font-family-base)",
+                    }}
+                  >
+                    Base Theme
+                  </button>
+                </div>
+                <div className="border border-[#050505] bg-[#f5f5f5] p-3" style={buildThemeVars()}>
+                  <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#52525b]">Edited</p>
+                  <button
+                    type="button"
+                    className="mt-2 border px-3 py-2 text-sm font-bold"
+                    style={{
+                      backgroundColor: "var(--color-primary)",
+                      color: "var(--color-primary-foreground)",
+                      borderColor: "var(--color-primary)",
+                      fontFamily: "var(--font-family-base)",
+                    }}
+                  >
+                    Current Theme
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {colors && (
+            <div className={`neo-frame p-4 ${sectionClass(7)}`} style={buildThemeVars()}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Live Preview</p>
+              <div className="mb-3 flex flex-wrap gap-2">
+                {["default", "hover", "focus", "active", "disabled", "error"].map((state) => (
+                  <button
+                    key={state}
+                    type="button"
+                    onClick={() => setComponentState(state)}
+                    className={`min-h-10 border border-[#050505] px-2 text-[11px] font-black uppercase ${componentState === state ? "bg-[#ff3b30] text-[#050505]" : "bg-[#ebebeb] text-[#3f3f46]"}`}
+                  >
+                    {state}
+                  </button>
+                ))}
+              </div>
               <div className="mb-3 grid grid-cols-3 gap-2 md:hidden">
                 {[
                   ["button", "Button"],
@@ -700,8 +1144,11 @@ export default function Home() {
                     style={{
                       backgroundColor: "var(--color-primary)",
                       color: "var(--color-primary-foreground)",
-                      borderColor: "var(--color-primary)",
+                      borderColor: componentState === "error" ? "var(--color-danger)" : "var(--color-primary)",
                       padding: "var(--spacing-sm) var(--spacing-md)",
+                      opacity: componentState === "disabled" ? 0.5 : 1,
+                      boxShadow: componentState === "hover" ? "0 4px 0 rgba(0,0,0,0.25)" : "none",
+                      transform: componentState === "active" ? "translateY(1px)" : "translateY(0)",
                     }}
                   >
                     Try Action
@@ -724,12 +1171,19 @@ export default function Home() {
                   <p className="text-xs font-bold uppercase opacity-70">Input States</p>
                   <input
                     readOnly
-                    value="Focus state"
+                    value={`${componentState} state`}
                     className="mt-2 w-full border px-2 py-2 text-sm"
                     style={{
-                      borderColor: "var(--color-primary)",
+                      borderColor:
+                        componentState === "error"
+                          ? "var(--color-danger)"
+                          : componentState === "focus"
+                            ? "var(--color-primary)"
+                            : "var(--color-surface-alt)",
                       color: "var(--color-text-primary)",
                       backgroundColor: "var(--color-surface)",
+                      boxShadow: componentState === "focus" ? "0 0 0 2px rgba(34,85,238,0.28)" : "none",
+                      opacity: componentState === "disabled" ? 0.65 : 1,
                     }}
                   />
                 </div>
@@ -738,17 +1192,32 @@ export default function Home() {
           )}
 
           {colors && (
-            <div className="neo-frame p-4">
+            <div className={`neo-frame p-4 ${sectionClass(8)}`}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Semantic Colors</p>
               <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                 {Object.entries(colors)
                   .filter(([name]) => name !== "neutrals")
                   .map(([name, value]) => (
-                    <div key={name} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 border border-[#050505] bg-[#f5f5f5] px-3 py-2">
+                    <button
+                      type="button"
+                      key={name}
+                      onClick={() =>
+                        openTokenDrilldown({
+                          name: prettyLabel(name),
+                          category: "semantic",
+                          source: tokenSource(value),
+                          value: getLiveColor(name, value) || "n/a",
+                          locked: Boolean(lockedTokens[`color.${name}`]),
+                          lockKey: `color.${name}`,
+                          confidence: tokenSource(value) === "extracted" ? "high" : "derived",
+                        })
+                      }
+                      className="grid grid-cols-[1fr_auto_auto] items-center gap-3 border border-[#050505] bg-[#f5f5f5] px-3 py-2 text-left"
+                    >
                       <span className="font-bold text-[#050505]">{prettyLabel(name)}</span>
                       <span className="inline-block h-4 w-4 border border-[#050505]" style={{ backgroundColor: getLiveColor(name, value) || "transparent" }} />
                       <span className="font-mono text-xs">{getLiveColor(name, value) || "n/a"}</span>
-                    </div>
+                    </button>
                   ))}
               </div>
 
