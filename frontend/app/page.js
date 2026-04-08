@@ -24,6 +24,7 @@ export default function Home() {
     md: 16,
     lg: 24,
   });
+  const [previewTab, setPreviewTab] = useState("button");
   const [lockedTokens, setLockedTokens] = useState({});
   const [isSavingState, setIsSavingState] = useState(false);
 
@@ -315,41 +316,43 @@ export default function Home() {
   const isBoldMood = meta?.style && String(meta.style).toLowerCase().includes("modern") && Boolean(colors?.brand);
 
   return (
-    <main className={`${result ? "min-h-screen overflow-y-auto" : "h-screen overflow-hidden"} bg-background px-4 py-5 text-foreground sm:px-6`}>
+    <main className={`${result ? "min-h-screen overflow-y-auto" : "min-h-screen overflow-y-auto sm:h-screen sm:overflow-hidden"} bg-background px-3 py-4 text-foreground sm:px-6 sm:py-5`}>
       <section className={`mx-auto flex w-full max-w-5xl flex-col gap-4 ${result ? "min-h-screen" : "h-full"}`}>
         <header className="text-center">
-          <h1 className="display-title text-7xl leading-none text-[#050505] sm:text-8xl lg:text-8xl">STYLESYNC</h1>
-          <p className="mt-1 text-sm font-semibold text-[#3f3f46] sm:text-lg">
+          <h1 className="display-title text-5xl leading-none text-[#050505] sm:text-8xl lg:text-8xl">STYLESYNC</h1>
+          <p className="mt-1 text-xs font-semibold text-[#3f3f46] sm:text-lg">
             Transform any website into an interactive, living design system
           </p>
         </header>
 
-        <div className="neo-frame hero-mosaic relative h-36 w-full overflow-hidden sm:h-40 lg:h-44" />
+        <div className="neo-frame hero-mosaic relative h-28 w-full overflow-hidden sm:h-40 lg:h-44" />
 
         <div className="w-full space-y-3">
-          <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-3">
+          <div className="sticky top-0 z-20 -mx-3 bg-background/95 px-3 py-2 backdrop-blur-sm sm:static sm:mx-0 sm:bg-transparent sm:px-0 sm:py-0">
+            <div className="flex w-full flex-col gap-2 sm:flex-row sm:gap-3">
             <input
               type="text"
               placeholder="https://www.upwork.com/"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="h-12 w-full border-2 border-[#050505] bg-[#f5f5f5] px-4 text-base font-semibold text-[#0f172a] outline-none focus:border-[#ff3b30]"
+              className="h-11 w-full border-2 border-[#050505] bg-[#f5f5f5] px-3 text-sm font-semibold text-[#0f172a] outline-none focus:border-[#ff3b30] sm:h-12 sm:px-4 sm:text-base"
             />
             <button
               onClick={handleAnalyze}
               disabled={isLoading}
-              className="h-12 shrink-0 border-2 border-[#050505] bg-[#ff3b30] px-7 text-base font-black tracking-[0.14em] text-[#050505] shadow-[4px_4px_0_#050505] transition-transform hover:-translate-y-0.5 active:translate-y-0"
+              className="h-11 shrink-0 border-2 border-[#050505] bg-[#ff3b30] px-5 text-sm font-black tracking-[0.12em] text-[#050505] shadow-[4px_4px_0_#050505] transition-transform hover:-translate-y-0.5 active:translate-y-0 sm:h-12 sm:px-7 sm:text-base sm:tracking-[0.14em]"
             >
               {isLoading ? "PARSING..." : "SCAN SITE"}
             </button>
           </div>
+          </div>
 
           <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
             {infoCards.map((card) => (
-              <article key={card.title} className="neo-frame p-5">
-                <p className={`mb-1 text-3xl font-bold ${card.iconClass}`}>{card.icon}</p>
-                <h2 className="mb-1 text-5xl font-black leading-none text-[#050505]">{card.title}</h2>
-                <p className="text-sm font-medium leading-snug text-[#3f3f46]">{card.body}</p>
+              <article key={card.title} className="neo-frame p-4 sm:p-5">
+                <p className={`mb-1 text-2xl font-bold sm:text-3xl ${card.iconClass}`}>{card.icon}</p>
+                <h2 className="mb-1 text-3xl font-black leading-none text-[#050505] sm:text-5xl">{card.title}</h2>
+                <p className="text-xs font-medium leading-snug text-[#3f3f46] sm:text-sm">{card.body}</p>
               </article>
             ))}
           </div>
@@ -465,20 +468,22 @@ export default function Home() {
                         key={name}
                         className={`border border-[#050505] bg-[#f5f5f5] p-2 transition-all duration-200 ${isLocked ? "shadow-[0_0_0_2px_rgba(255,59,48,0.35)]" : ""}`}
                       >
-                        <div className="mb-2 flex items-center justify-between gap-2">
+                        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                           <p className="text-sm font-bold">{prettyLabel(name)}</p>
-                          <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#52525b]">
-                            {isLocked ? "locked" : tokenValue(value?.source || value?.source) || "live"}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => toggleLock(tokenName)}
-                            className={`border border-[#050505] px-2 py-1 text-xs font-black transition-all duration-200 ${isLocked ? "bg-[#ffe4e6] text-[#7f1d1d]" : "bg-[#ebebeb]"}`}
-                          >
-                            <span className={`inline-block transition-transform duration-200 ${isLocked ? "scale-110" : "scale-100"}`}>
-                              {isLocked ? "🔒" : "🔓"}
+                          <div className="ml-auto flex items-center gap-2">
+                            <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#52525b]">
+                              {isLocked ? "locked" : tokenValue(value?.source || value?.source) || "live"}
                             </span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => toggleLock(tokenName)}
+                              className={`min-h-11 min-w-11 border border-[#050505] px-2 py-1 text-xs font-black transition-all duration-200 ${isLocked ? "bg-[#ffe4e6] text-[#7f1d1d]" : "bg-[#ebebeb]"}`}
+                            >
+                              <span className={`inline-block transition-transform duration-200 ${isLocked ? "scale-110" : "scale-100"}`}>
+                                {isLocked ? "🔒" : "🔓"}
+                              </span>
+                            </button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-[48px_1fr] items-center gap-2">
                           <input
@@ -649,9 +654,25 @@ export default function Home() {
           {colors && (
             <div className="neo-frame p-4" style={buildThemeVars()}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Live Preview</p>
+              <div className="mb-3 grid grid-cols-3 gap-2 md:hidden">
+                {[
+                  ["button", "Button"],
+                  ["card", "Card"],
+                  ["input", "Input"],
+                ].map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setPreviewTab(value)}
+                    className={`min-h-11 border border-[#050505] px-2 text-xs font-black uppercase ${previewTab === value ? "bg-[#ff3b30] text-[#050505]" : "bg-[#ebebeb] text-[#3f3f46]"}`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                 <div
-                  className="border border-[#050505] p-4"
+                  className={`${previewTab === "button" ? "block" : "hidden"} border border-[#050505] p-4 md:block`}
                   style={{
                     backgroundColor: "var(--color-surface)",
                     color: "var(--color-text-primary)",
@@ -674,7 +695,7 @@ export default function Home() {
                 </div>
 
                 <div
-                  className="border border-[#050505] p-4"
+                  className={`${previewTab === "card" ? "block" : "hidden"} border border-[#050505] p-4 md:block`}
                   style={{
                     backgroundColor: "var(--color-surface-alt)",
                     color: "var(--color-text-primary)",
@@ -685,7 +706,7 @@ export default function Home() {
                   <p className="mt-2 text-sm">Live card preview updates instantly as tokens change.</p>
                 </div>
 
-                <div className="border border-[#050505] p-4" style={{ backgroundColor: "var(--color-surface)", fontFamily: "var(--font-family-base)" }}>
+                <div className={`${previewTab === "input" ? "block" : "hidden"} border border-[#050505] p-4 md:block`} style={{ backgroundColor: "var(--color-surface)", fontFamily: "var(--font-family-base)" }}>
                   <p className="text-xs font-bold uppercase opacity-70">Input States</p>
                   <input
                     readOnly
@@ -754,7 +775,18 @@ export default function Home() {
 
               <div>
                 <p className="mb-1 font-bold uppercase">Type Scale</p>
-                <div className="overflow-x-auto border border-[#050505] bg-[#f5f5f5]">
+                <ul className="space-y-2 sm:hidden">
+                  {(typography.scale || []).map((item, i) => (
+                    <li key={i} className="border border-[#050505] bg-[#f5f5f5] px-3 py-2 text-xs">
+                      <p className="font-bold uppercase">{item.step}</p>
+                      <p>Size: {tokenValue(item.size)}</p>
+                      <p>Weight: {tokenValue(item.weight)}</p>
+                      <p>Line Height: {tokenValue(item.line_height)}</p>
+                      <p>Letter Spacing: {tokenValue(item.letter_spacing)}</p>
+                    </li>
+                  ))}
+                </ul>
+                <div className="hidden overflow-x-auto border border-[#050505] bg-[#f5f5f5] sm:block">
                   <div className="grid min-w-140 grid-cols-5 border-b border-[#050505] bg-[#ebebeb] px-3 py-2 text-[11px] font-bold uppercase tracking-[0.08em]">
                     <span>Step</span>
                     <span>Size</span>
