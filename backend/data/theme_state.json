@@ -1,0 +1,678 @@
+{
+  "shxz7_vercel_app": {
+    "site_id": "shxz7_vercel_app",
+    "url": "https://shxz7.vercel.app/",
+    "version": 34,
+    "updated_at": "2026-04-08T09:52:21.723169+00:00",
+    "locked_tokens": [
+      "color.primary"
+    ],
+    "overrides": {
+      "colors": {
+        "primary": "#f97316",
+        "primary_foreground": "#ffffff",
+        "surface": "#e8ffb1",
+        "surface_alt": "#c8ff5c",
+        "text_primary": "#000000",
+        "text_secondary": "#1a1a1a",
+        "brand": "#0070c0",
+        "danger": "#0060a5"
+      },
+      "typography": {
+        "fontFamily": "Satoshi",
+        "bodySize": 15,
+        "bodyWeight": 400,
+        "bodyLineHeight": 1.5,
+        "h1Size": 60
+      },
+      "spacing": {
+        "xs": 2,
+        "sm": 4,
+        "md": 8,
+        "lg": 16
+      }
+    },
+    "history": [
+      {
+        "version": 15,
+        "updated_at": "2026-04-08T09:52:19.635136+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 44
+          }
+        }
+      },
+      {
+        "version": 16,
+        "updated_at": "2026-04-08T09:52:19.685741+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 48
+          }
+        }
+      },
+      {
+        "version": 17,
+        "updated_at": "2026-04-08T09:52:19.752582+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 52
+          }
+        }
+      },
+      {
+        "version": 18,
+        "updated_at": "2026-04-08T09:52:19.968505+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 56
+          }
+        }
+      },
+      {
+        "version": 19,
+        "updated_at": "2026-04-08T09:52:20.286054+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 52
+          }
+        }
+      },
+      {
+        "version": 20,
+        "updated_at": "2026-04-08T09:52:20.367791+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 48
+          }
+        }
+      },
+      {
+        "version": 21,
+        "updated_at": "2026-04-08T09:52:20.434849+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 44
+          }
+        }
+      },
+      {
+        "version": 22,
+        "updated_at": "2026-04-08T09:52:20.457635+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 40
+          }
+        }
+      },
+      {
+        "version": 23,
+        "updated_at": "2026-04-08T09:52:20.483607+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 36
+          }
+        }
+      },
+      {
+        "version": 24,
+        "updated_at": "2026-04-08T09:52:20.506984+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 32
+          }
+        }
+      },
+      {
+        "version": 25,
+        "updated_at": "2026-04-08T09:52:20.529663+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 24
+          }
+        }
+      },
+      {
+        "version": 26,
+        "updated_at": "2026-04-08T09:52:20.578245+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 16
+          }
+        }
+      },
+      {
+        "version": 27,
+        "updated_at": "2026-04-08T09:52:20.617895+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 12
+          }
+        }
+      },
+      {
+        "version": 28,
+        "updated_at": "2026-04-08T09:52:20.634130+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 8
+          }
+        }
+      },
+      {
+        "version": 29,
+        "updated_at": "2026-04-08T09:52:20.650364+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 4
+          }
+        }
+      },
+      {
+        "version": 30,
+        "updated_at": "2026-04-08T09:52:20.667943+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 0
+          }
+        }
+      },
+      {
+        "version": 31,
+        "updated_at": "2026-04-08T09:52:21.383663+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 4
+          }
+        }
+      },
+      {
+        "version": 32,
+        "updated_at": "2026-04-08T09:52:21.429202+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 8
+          }
+        }
+      },
+      {
+        "version": 33,
+        "updated_at": "2026-04-08T09:52:21.532892+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 12
+          }
+        }
+      },
+      {
+        "version": 34,
+        "updated_at": "2026-04-08T09:52:21.723169+00:00",
+        "locked_tokens": [
+          "color.primary"
+        ],
+        "overrides": {
+          "colors": {
+            "primary": "#f97316",
+            "primary_foreground": "#ffffff",
+            "surface": "#e8ffb1",
+            "surface_alt": "#c8ff5c",
+            "text_primary": "#000000",
+            "text_secondary": "#1a1a1a",
+            "brand": "#0070c0",
+            "danger": "#0060a5"
+          },
+          "typography": {
+            "fontFamily": "Satoshi",
+            "bodySize": 15,
+            "bodyWeight": 400,
+            "bodyLineHeight": 1.5,
+            "h1Size": 60
+          },
+          "spacing": {
+            "xs": 2,
+            "sm": 4,
+            "md": 8,
+            "lg": 16
+          }
+        }
+      }
+    ]
+  }
+}
