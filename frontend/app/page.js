@@ -32,7 +32,6 @@ export default function Home() {
   const [baselineTheme, setBaselineTheme] = useState(null);
   const [compareSplit, setCompareSplit] = useState(50);
   const [componentState, setComponentState] = useState("default");
-  const [revealedCount, setRevealedCount] = useState(0);
   const [selectedToken, setSelectedToken] = useState(null);
   const [pendingSharedSession, setPendingSharedSession] = useState(null);
 
@@ -102,9 +101,6 @@ export default function Home() {
       return null;
     }
   };
-
-  const sectionClass = (index) =>
-    `transition-all duration-500 ${revealedCount >= index ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`;
 
   const createSharePayload = () => ({
     sourceUrl: safeUrl(url.trim()),
@@ -229,19 +225,6 @@ export default function Home() {
       }
     }
   }, []);
-
-  useEffect(() => {
-    if (!result) {
-      return;
-    }
-
-    setRevealedCount(0);
-    const timer = window.setInterval(() => {
-      setRevealedCount((prev) => Math.min(prev + 1, 14));
-    }, 85);
-
-    return () => window.clearInterval(timer);
-  }, [result]);
 
   const tokenValue = (token) => (token && typeof token === "object" && "value" in token ? token.value : token);
 
@@ -716,7 +699,7 @@ export default function Home() {
             <button
               onClick={handleAnalyze}
               disabled={isLoading}
-              className="h-11 shrink-0 border-2 border-[#050505] bg-[#ff3b30] px-5 text-sm font-black tracking-[0.12em] text-[#050505] shadow-[4px_4px_0_#050505] transition-transform hover:-translate-y-0.5 active:translate-y-0 sm:h-12 sm:px-7 sm:text-base sm:tracking-[0.14em]"
+              className="h-11 shrink-0 border-2 border-[#050505] bg-[#ff3b30] px-5 text-sm font-black tracking-[0.12em] text-[#050505] shadow-[4px_4px_0_#050505] sm:h-12 sm:px-7 sm:text-base sm:tracking-[0.14em]"
             >
               {isLoading ? "PARSING..." : "SCAN SITE"}
             </button>
@@ -757,16 +740,16 @@ export default function Home() {
             })}
           </div>
           <div className="space-y-2">
-            <div className="h-3 w-1/2 animate-pulse bg-[#d4d4d8]" />
-            <div className="ml-4 h-3 w-2/3 animate-pulse bg-[#e4e4e7]" />
-            <div className="ml-8 h-3 w-1/3 animate-pulse bg-[#d4d4d8]" />
-            <div className="ml-12 h-3 w-1/2 animate-pulse bg-[#e4e4e7]" />
-            <div className="ml-4 h-3 w-3/4 animate-pulse bg-[#d4d4d8]" />
+            <div className="h-3 w-1/2 bg-[#d4d4d8]" />
+            <div className="ml-4 h-3 w-2/3 bg-[#e4e4e7]" />
+            <div className="ml-8 h-3 w-1/3 bg-[#d4d4d8]" />
+            <div className="ml-12 h-3 w-1/2 bg-[#e4e4e7]" />
+            <div className="ml-4 h-3 w-3/4 bg-[#d4d4d8]" />
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2">
-            <div className="h-18 animate-pulse border border-[#050505] bg-[#efefef]" />
-            <div className="h-18 animate-pulse border border-[#050505] bg-[#efefef]" />
-            <div className="h-18 animate-pulse border border-[#050505] bg-[#efefef]" />
+            <div className="h-18 border border-[#050505] bg-[#efefef]" />
+            <div className="h-18 border border-[#050505] bg-[#efefef]" />
+            <div className="h-18 border border-[#050505] bg-[#efefef]" />
           </div>
         </section>
       )}
@@ -785,7 +768,7 @@ export default function Home() {
 
       {result && (
         <section className="mt-3 flex flex-col gap-3">
-          <div className={`neo-frame p-3 ${sectionClass(1)}`}>
+          <div className="neo-frame p-3">
             <p className="mb-2 text-sm font-black uppercase tracking-[0.2em] text-[#050505]">Scan Summary</p>
             <div className="grid grid-cols-1 gap-2 text-sm font-semibold text-[#27272a] sm:grid-cols-3">
               {metricItems.map(([label, value]) => (
@@ -877,7 +860,7 @@ export default function Home() {
           </div>
 
           {selectedToken && (
-            <div className={`neo-frame border-[#2563eb] bg-[#eff6ff] p-3 ${sectionClass(2)}`}>
+            <div className="neo-frame border-[#2563eb] bg-[#eff6ff] p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-black uppercase tracking-[0.12em] text-[#1e3a8a]">Token Drilldown</p>
                 <button
@@ -902,7 +885,7 @@ export default function Home() {
           <div className="pr-1">
 
           {colors && (
-            <div className={`neo-frame p-4 ${isBoldMood ? "ring-2 ring-[#ff3b30]/40" : ""} ${sectionClass(3)}`}>
+            <div className={`neo-frame p-4 ${isBoldMood ? "ring-2 ring-[#ff3b30]/40" : ""}`}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Token Editor</p>
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {Object.entries(colors)
@@ -915,7 +898,7 @@ export default function Home() {
                     return (
                       <div
                         key={name}
-                        className={`border border-[#050505] bg-[#f5f5f5] p-2 transition-all duration-200 ${isLocked ? "shadow-[0_0_0_2px_rgba(255,59,48,0.35)]" : ""}`}
+                        className={`border border-[#050505] bg-[#f5f5f5] p-2 ${isLocked ? "shadow-[0_0_0_2px_rgba(255,59,48,0.35)]" : ""}`}
                       >
                         <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                           <p className="text-sm font-bold">{prettyLabel(name)}</p>
@@ -943,9 +926,9 @@ export default function Home() {
                             <button
                               type="button"
                               onClick={() => toggleLock(tokenName)}
-                              className={`min-h-11 min-w-11 border border-[#050505] px-2 py-1 text-xs font-black transition-all duration-200 ${isLocked ? "bg-[#ffe4e6] text-[#7f1d1d]" : "bg-[#ebebeb]"}`}
+                              className={`min-h-11 min-w-11 border border-[#050505] px-2 py-1 text-xs font-black ${isLocked ? "bg-[#ffe4e6] text-[#7f1d1d]" : "bg-[#ebebeb]"}`}
                             >
-                              <span className={`inline-block transition-transform duration-200 ${isLocked ? "scale-110" : "scale-100"}`}>
+                              <span className="inline-block">
                                 {isLocked ? "🔒" : "🔓"}
                               </span>
                             </button>
@@ -975,7 +958,7 @@ export default function Home() {
           )}
 
           {typography && (
-            <div className={`neo-frame p-4 ${sectionClass(4)}`}>
+            <div className="neo-frame p-4">
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Typography Inspector</p>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="border border-[#050505] bg-[#f5f5f5] p-3">
@@ -1058,7 +1041,7 @@ export default function Home() {
           )}
 
           {spacing && (
-            <div className={`neo-frame p-4 ${sectionClass(5)}`}>
+            <div className="neo-frame p-4">
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Spacing Visualizer</p>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 <div className="space-y-2 border border-[#050505] bg-[#f5f5f5] p-3">
@@ -1094,7 +1077,7 @@ export default function Home() {
           )}
 
           {colors && (
-            <div className={`neo-frame p-4 ${sectionClass(6)}`}>
+            <div className="neo-frame p-4">
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Before/After Compare</p>
               <div className="mb-3 flex items-center gap-3 text-xs font-bold uppercase tracking-[0.08em] text-[#3f3f46]">
                 <span>Before</span>
@@ -1145,7 +1128,7 @@ export default function Home() {
           )}
 
           {colors && (
-            <div className={`neo-frame p-4 ${sectionClass(7)}`} style={buildThemeVars()}>
+            <div className="neo-frame p-4" style={buildThemeVars()}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Live Preview</p>
               <div className="mb-3 flex flex-wrap gap-2">
                 {["default", "hover", "focus", "active", "disabled", "error"].map((state) => (
@@ -1246,7 +1229,7 @@ export default function Home() {
           )}
 
           {colors && (
-            <div className={`neo-frame p-4 ${sectionClass(8)}`}>
+            <div className="neo-frame p-4">
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Semantic Colors</p>
               <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                 {Object.entries(colors)
