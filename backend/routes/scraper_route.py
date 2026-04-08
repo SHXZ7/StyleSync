@@ -187,6 +187,8 @@ def build_system_with_source(system_raw, extracted_color_pool=None):
     wrapped_image_palette = {
         "dominant": [_token(value, source="extracted") for value in image_palette.get("dominant", [])],
         "vibrant": _token(image_palette.get("vibrant"), source="extracted") if image_palette.get("vibrant") else None,
+        "confidence": _token(round(float(image_palette.get("confidence", 0) or 0), 3), source="computed"),
+        "sampled_images": _token(int(image_palette.get("sampled_images", 0) or 0), source="computed"),
     }
 
     return {
@@ -674,6 +676,8 @@ def _simulate_design_data(url):
         "image_palette": {
             "dominant": [brand, _adjust_color(brand, 16), _adjust_color(brand, -16), "#f0f0f0", "#d9d9d9"],
             "vibrant": brand,
+            "confidence": 0.35,
+            "sampled_images": 0,
         },
         "social_auth_colors": [],
         "error_colors": [_adjust_color(brand, -30)],
@@ -734,7 +738,9 @@ async def scrape(url: str):
         spacing = design_data.get("spacing", {})
         buttons = design_data.get("buttons", [])
         image_palette_raw = design_data.get("image_palette", {})
-        image_palette_source = design_data.get("image_palette_source")
+        image_palette_source = design_data.get("image_palette_source") or image_palette_raw.get("source")
+        image_palette_confidence = design_data.get("image_palette_confidence", image_palette_raw.get("confidence", 0))
+        image_palette_sampled_images = design_data.get("image_palette_sampled_images", image_palette_raw.get("sampled_images", 0))
         social_auth_colors_raw = design_data.get("social_auth_colors", [])
         error_colors_raw = design_data.get("error_colors", [])
         print("RAW COLORS:", raw_colors[:20])
@@ -770,9 +776,19 @@ async def scrape(url: str):
         card_component = build_card_component(structured, semantic_colors, spacing_tokens, radii_tokens)
         image_dominant = clean_colors(image_palette_raw.get("dominant", []))[:5]
         image_vibrant = image_vibrant or (semantic_colors.get("brand") or semantic_colors.get("primary"))
+        image_palette_confidence = float(image_palette_confidence or 0)
+        if image_palette_confidence <= 0 and image_dominant:
+            # If upstream confidence was lost but palette exists, keep a non-zero reliability baseline.
+            if str(image_palette_source or "").startswith("screenshot"):
+                image_palette_confidence = 0.42
+            else:
+                image_palette_confidence = 0.28
+        image_palette_sampled_images = int(image_palette_sampled_images or 0)
         image_palette = {
             "dominant": image_dominant,
             "vibrant": image_vibrant,
+            "confidence": image_palette_confidence,
+            "sampled_images": image_palette_sampled_images,
         }
         system_raw = {
             "colors": semantic_colors,
@@ -803,6 +819,8 @@ async def scrape(url: str):
             "scrape_mode": scrape_mode,
             "scrape_issue": scrape_issue,
             "image_palette_source": image_palette_source,
+            "image_palette_confidence": round(float(image_palette_confidence or 0), 3),
+            "image_palette_sampled_images": int(image_palette_sampled_images or 0),
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Scrape failed: {exc}") from exc

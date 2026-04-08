@@ -249,6 +249,19 @@ export default function Home() {
   const imagePalette = system?.image_palette;
   const meta = result?.meta;
   const components = system?.components;
+  const imageSource = meta?.image_palette_source || "dom-images";
+  const imageDominantList = imagePalette?.dominant || [];
+  const rawImageConfidence = Number(meta?.image_palette_confidence ?? tokenValue(imagePalette?.confidence) ?? 0);
+  const imageConfidence =
+    rawImageConfidence > 0
+      ? rawImageConfidence
+      : imageDominantList.length
+        ? (imageSource.startsWith("screenshot") ? 0.42 : 0.28)
+        : 0;
+  const imageConfidencePct = Math.round(Math.max(0, Math.min(1, imageConfidence)) * 100);
+  const imageSampleCount = Number(meta?.image_palette_sampled_images ?? tokenValue(imagePalette?.sampled_images) ?? 0);
+  const imageSampleDisplay = imageSource.startsWith("screenshot") ? "n/a" : String(imageSampleCount);
+  const vibrantDisplay = tokenValue(imagePalette?.vibrant) || tokenValue(imageDominantList[0]) || "n/a";
 
   const getLiveColor = (name, fallback) => editableColors[name] || tokenValue(fallback) || "#000000";
 
@@ -305,7 +318,8 @@ export default function Home() {
     ["density", meta?.density || "-"],
     ["mode", meta?.color_mode || "-"],
     ["scrape", meta?.scrape_mode || "live"],
-    ["image palette", meta?.image_palette_source || "dom-images"],
+    ["image palette", imageSource],
+    ["img confidence", `${imageConfidencePct}%`],
   ];
 
   const prettyLabel = (label) =>
@@ -732,8 +746,8 @@ export default function Home() {
                   .map(([name, value]) => (
                     <div key={name} className="grid grid-cols-[1fr_auto_auto] items-center gap-3 border border-[#050505] bg-[#f5f5f5] px-3 py-2">
                       <span className="font-bold text-[#050505]">{prettyLabel(name)}</span>
-                      <span className="inline-block h-4 w-4 border border-[#050505]" style={{ backgroundColor: tokenValue(value) || "transparent" }} />
-                      <span className="font-mono text-xs">{tokenValue(value) || "n/a"}</span>
+                      <span className="inline-block h-4 w-4 border border-[#050505]" style={{ backgroundColor: getLiveColor(name, value) || "transparent" }} />
+                      <span className="font-mono text-xs">{getLiveColor(name, value) || "n/a"}</span>
                     </div>
                   ))}
               </div>
@@ -841,8 +855,11 @@ export default function Home() {
           {imagePalette && (
             <div className="neo-frame p-4">
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Image Palette</p>
+              <p className="mb-1 text-xs font-bold uppercase tracking-[0.08em] text-[#52525b]">
+                Source: {imageSource}
+              </p>
               <p className="mb-2 text-xs font-bold uppercase tracking-[0.08em] text-[#52525b]">
-                Source: {meta?.image_palette_source || "dom-images"}
+                Confidence: {imageConfidencePct}% • Sampled Images: {imageSampleDisplay}
               </p>
               <div className="mb-3">
                 <p className="mb-1 font-bold uppercase">Dominant</p>
@@ -859,8 +876,8 @@ export default function Home() {
               <div>
                 <p className="mb-1 font-bold uppercase">Vibrant</p>
                 <p className="text-sm flex items-center gap-2">
-                  <span className="inline-block h-3 w-3 border border-[#050505]" style={{ backgroundColor: tokenValue(imagePalette.vibrant) || "transparent" }} />
-                  {tokenValue(imagePalette.vibrant) || "n/a"}
+                  <span className="inline-block h-3 w-3 border border-[#050505]" style={{ backgroundColor: vibrantDisplay !== "n/a" ? vibrantDisplay : "transparent" }} />
+                  {vibrantDisplay}
                 </p>
               </div>
             </div>
@@ -878,53 +895,73 @@ export default function Home() {
           )}
 
           {components?.buttons && (
-            <div className="neo-frame p-4">
+            <div className="neo-frame p-4" style={buildThemeVars()}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Components: Buttons</p>
               <div className="space-y-4">
                 {Object.entries(components.buttons)
                   .filter(([, btn]) => !!btn)
-                  .map(([role, btn]) => (
-                    <div key={role} className="border border-[#050505] bg-[#f5f5f5] p-3">
-                      <p className="mb-2 text-sm font-bold uppercase">{role}</p>
-                      <button
-                        className="mb-2 border border-[#050505]"
-                        style={{
-                          backgroundColor: btn.background || "#222222",
-                          color: btn.text || "#ffffff",
-                          padding: btn.padding || "8px 14px",
-                          borderRadius: btn.radius || "6px",
-                          borderColor: btn.border_color || "transparent",
-                          borderWidth: btn.border_width || "0px",
-                          borderStyle: btn.border_style || "solid",
-                          fontSize: btn.font_size || "14px",
-                          fontWeight: btn.font_weight || "600",
-                        }}
-                      >
-                        Sample Button
-                      </button>
-                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-3">
-                        {Object.entries({
-                          background: btn.background || "n/a",
-                          text: btn.text || "n/a",
-                          border_color: btn.border_color || "n/a",
-                          border_width: btn.border_width || "n/a",
-                          border_style: btn.border_style || "n/a",
-                          padding: btn.padding || "n/a",
-                          radius: btn.radius || "n/a",
-                          font_size: btn.font_size || "n/a",
-                          font_weight: btn.font_weight || "n/a",
-                        }).map(([k, v]) => (
-                          <p key={k}><span className="font-bold">{prettyLabel(k)}:</span> {v}</p>
-                        ))}
+                  .map(([role, btn]) => {
+                    const roleStyles =
+                      role === "primary"
+                        ? {
+                            backgroundColor: "var(--color-primary)",
+                            color: "var(--color-primary-foreground)",
+                            borderColor: "var(--color-primary)",
+                          }
+                        : role === "ghost"
+                          ? {
+                              backgroundColor: "transparent",
+                              color: "var(--color-text-primary)",
+                              borderColor: "var(--color-text-secondary)",
+                            }
+                          : {
+                              backgroundColor: "var(--color-surface-alt)",
+                              color: "var(--color-text-primary)",
+                              borderColor: "var(--color-text-secondary)",
+                            };
+
+                    return (
+                      <div key={role} className="border border-[#050505] bg-[#f5f5f5] p-3">
+                        <p className="mb-2 text-sm font-bold uppercase">{role}</p>
+                        <button
+                          className="mb-2 border border-[#050505]"
+                          style={{
+                            ...roleStyles,
+                            padding: btn.padding || "8px 14px",
+                            borderRadius: btn.radius || "6px",
+                            borderWidth: btn.border_width || "1px",
+                            borderStyle: btn.border_style || "solid",
+                            fontSize: btn.font_size || "14px",
+                            fontWeight: btn.font_weight || "600",
+                            fontFamily: "var(--font-family-base)",
+                          }}
+                        >
+                          Sample Button
+                        </button>
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-3">
+                          {Object.entries({
+                            background: btn.background || "n/a",
+                            text: btn.text || "n/a",
+                            border_color: btn.border_color || "n/a",
+                            border_width: btn.border_width || "n/a",
+                            border_style: btn.border_style || "n/a",
+                            padding: btn.padding || "n/a",
+                            radius: btn.radius || "n/a",
+                            font_size: btn.font_size || "n/a",
+                            font_weight: btn.font_weight || "n/a",
+                          }).map(([k, v]) => (
+                            <p key={k}><span className="font-bold">{prettyLabel(k)}:</span> {v}</p>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           )}
 
           {components?.input && (
-            <div className="neo-frame p-4">
+            <div className="neo-frame p-4" style={buildThemeVars()}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Components: Input</p>
 
               <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
@@ -935,17 +972,19 @@ export default function Home() {
                       readOnly
                       value="Input"
                       style={{
-                        backgroundColor: components.input.default?.background || "#ffffff",
+                        backgroundColor: "var(--color-surface)",
                         borderColor:
                           state === "focus"
-                            ? components.input.focus?.border_color || "#000000"
+                            ? "var(--color-primary)"
                             : state === "error"
-                              ? components.input.error?.border_color || "#ce0026"
-                              : components.input.default?.border_color || "#e0e0e0",
+                              ? "var(--color-danger)"
+                              : "var(--color-surface-alt)",
                         borderWidth: "1px",
                         borderStyle: "solid",
                         padding: components.input.default?.padding || "8px 12px",
                         width: "100%",
+                        color: "var(--color-text-primary)",
+                        fontFamily: "var(--font-family-base)",
                       }}
                     />
                     <div className="mt-2 space-y-1 text-xs">
@@ -960,17 +999,20 @@ export default function Home() {
           )}
 
           {components?.card && (
-            <div className="neo-frame p-4">
+            <div className="neo-frame p-4" style={buildThemeVars()}>
               <p className="mb-3 text-lg font-black uppercase tracking-[0.12em]">Components: Card</p>
               <div
                 className="border border-[#050505]"
                 style={{
-                  backgroundColor: components.card.background || "#ffffff",
+                  backgroundColor: "var(--color-surface-alt)",
+                  color: "var(--color-text-primary)",
+                  borderColor: "var(--color-surface-alt)",
                   borderRadius: components.card.radius || "12px",
                   padding: components.card.padding || "24px",
+                  fontFamily: "var(--font-family-base)",
                 }}
               >
-                Card sample
+                Card sample with live CSS vars
               </div>
             </div>
           )}

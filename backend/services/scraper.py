@@ -942,8 +942,10 @@ def _scrape_sync(url: str):
             "buttons": buttons,
             "image_palette": image_palette,
             "image_palette_source": image_palette.get("source"),
-          "social_auth_colors": social_auth_colors,
-          "error_colors": error_colors,
+            "image_palette_confidence": image_palette.get("confidence", 0),
+            "image_palette_sampled_images": image_palette.get("sampled_images", 0),
+            "social_auth_colors": social_auth_colors,
+            "error_colors": error_colors,
         }
 
 
