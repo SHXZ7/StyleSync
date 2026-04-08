@@ -3,6 +3,9 @@
 import { useState } from "react";
 
 export default function Home() {
+  const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "http://127.0.0.1:8000";
+  const apiUrl = (path) => `${apiBase}${path}`;
+
   const [url, setUrl] = useState("");
   const [result, setResult] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -138,7 +141,7 @@ export default function Home() {
 
     setIsSavingState(true);
     try {
-      const res = await fetch("http://127.0.0.1:8000/theme-state", {
+      const res = await fetch(apiUrl("/theme-state"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -199,7 +202,7 @@ export default function Home() {
     setError("");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/scrape?url=" + encodeURIComponent(validUrl), {
+      const res = await fetch(apiUrl("/scrape?url=") + encodeURIComponent(validUrl), {
         method: "POST",
       });
 
