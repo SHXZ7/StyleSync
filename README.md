@@ -55,7 +55,7 @@ Backend: Render / Railway
 ---
 
 ## 🎥 Demo Video
-![Nike output](image/video.mp4)
+![Video](image/video.mp4)
 Google Drive link: https://drive.google.com/file/d/1SYI7k2GQvtg8dcaxRLeMNY6icT0er98X/view?usp=sharing
 
 ---
